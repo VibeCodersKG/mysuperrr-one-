@@ -10,13 +10,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
 
+  const isAdmin = user?.attributes?.administrator || user?.attributes?.role === 'deptAdmin' || user?.attributes?.role === 'mruAdmin';
+
   const navItems = [
     { path: '/', label: 'Дашборд' },
     { path: '/map', label: 'Карта' },
     { path: '/registry', label: 'Реестр' },
     { path: '/devices', label: 'Устройства' },
     { path: '/events', label: 'События' },
+    { path: '/geozones', label: 'Геозоны' },
   ];
+
+  // Добавляем админ панель только для администраторов
+  if (isAdmin) {
+    navItems.push({ path: '/admin', label: 'Администрирование' });
+  }
 
   return (
     <div className="app-layout">
