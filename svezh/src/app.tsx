@@ -7,6 +7,8 @@ import Registry from './components/registry/Registry';
 import Devices from './components/devices/Devices';
 import Events from './components/events/events';
 import Layout from './components/common/layout';
+import AdminPanel from './components/admin/AdminPanel';
+import GeoZoneManager from './components/geozones/GeoZoneManager';
 
 // Импортируем карту с ленивой загрузкой
 const RealMap = React.lazy(() => import('./components/map/RealMap'));
@@ -58,6 +60,20 @@ const App: React.FC = () => {
                 <React.Suspense fallback={<div>Загрузка карты...</div>}>
                   <RealMap />
                 </React.Suspense>
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin" element={
+            <ProtectedRoute>
+              <Layout>
+                <AdminPanel />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/geozones" element={
+            <ProtectedRoute>
+              <Layout>
+                <GeoZoneManager />
               </Layout>
             </ProtectedRoute>
           } />
