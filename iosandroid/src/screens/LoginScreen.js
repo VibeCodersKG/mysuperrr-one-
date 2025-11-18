@@ -54,7 +54,7 @@ const LoginScreen = () => {
           placeholder="Пароль"
           value={password}
           onChangeText={setPassword}
-          secureTextEntry
+          secureTextEntry={true}
         />
         
         <TouchableOpacity
