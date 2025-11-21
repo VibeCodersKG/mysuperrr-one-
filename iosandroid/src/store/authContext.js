@@ -28,6 +28,21 @@ export const AuthProvider = ({ children }) => {
         setToken(storedToken);
         // Проверяем валидность токена
         const response = await authAPI.getMe();
+
+        // 🔍 ДИАГНОСТИКА: Проверяем что возвращает Backend
+        console.log('═══════════════════════════════════════════');
+        console.log('🔍 BACKEND RESPONSE (checkAuthState):');
+        console.log('Full response.data:', JSON.stringify(response.data, null, 2));
+        console.log('─────────────────────────────────────────');
+        if (response.data.user) {
+          console.log('📊 TYPE CHECKS:');
+          console.log('user.administrator type:', typeof response.data.user.administrator);
+          console.log('user.administrator value:', response.data.user.administrator);
+          console.log('user.administrator === true:', response.data.user.administrator === true);
+          console.log('user.administrator === "true":', response.data.user.administrator === "true");
+        }
+        console.log('═══════════════════════════════════════════');
+
         setUser(response.data.user);
       }
     } catch (error) {
@@ -42,16 +57,30 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.login(email, password);
       const { token: newToken, user: userData } = response.data;
-      
+
+      // 🔍 ДИАГНОСТИКА: Проверяем что возвращает Backend при логине
+      console.log('═══════════════════════════════════════════');
+      console.log('🔍 BACKEND RESPONSE (login):');
+      console.log('Full response.data:', JSON.stringify(response.data, null, 2));
+      console.log('─────────────────────────────────────────');
+      if (userData) {
+        console.log('📊 TYPE CHECKS (Login):');
+        console.log('user.administrator type:', typeof userData.administrator);
+        console.log('user.administrator value:', userData.administrator);
+        console.log('user.administrator === true:', userData.administrator === true);
+        console.log('user.administrator === "true":', userData.administrator === "true");
+      }
+      console.log('═══════════════════════════════════════════');
+
       await AsyncStorage.setItem('authToken', newToken);
       setToken(newToken);
       setUser(userData);
-      
+
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Ошибка входа' 
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Ошибка входа'
       };
     }
   };
