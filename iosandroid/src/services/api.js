@@ -59,6 +59,14 @@ export const faceCheckAPI = {
     }),
 };
 
+export const deviceAPI = {
+  getDeviceByUniqueId: (uniqueId) =>
+    api.get(`/devices/by-unique-id/${uniqueId}`),
+
+  getAllDevices: () =>
+    api.get('/devices'),
+};
+
 export const traccarAPI = {
   // Отправка GPS данных через Nginx в Traccar
   sendPosition: (positionData) => {
