@@ -18,6 +18,21 @@ const ProfileScreen = () => {
   const [loading, setLoading] = useState(true);
   const [faceCheckHistory, setFaceCheckHistory] = useState([]);
 
+  // 🔍 ДИАГНОСТИКА: Проверяем user объект
+  useEffect(() => {
+    if (user) {
+      console.log('═══════════════════════════════════════════');
+      console.log('🔍 ProfileScreen - USER OBJECT:');
+      console.log('user:', JSON.stringify(user, null, 2));
+      console.log('─────────────────────────────────────────');
+      console.log('user.administrator type:', typeof user.administrator);
+      console.log('user.administrator value:', user.administrator);
+      console.log('user.administrator === true:', user.administrator === true);
+      console.log('user.administrator === "true":', user.administrator === "true");
+      console.log('═══════════════════════════════════════════');
+    }
+  }, [user]);
+
   useEffect(() => {
     loadProfileData();
   }, []);
@@ -25,9 +40,21 @@ const ProfileScreen = () => {
   const loadProfileData = async () => {
     try {
       setLoading(true);
-      
+
       // Загружаем устройства пользователя
       const devicesResponse = await deviceAPI.getDeviceByUniqueId(user.name);
+
+      // 🔍 ДИАГНОСТИКА: Проверяем devices данные
+      console.log('═══════════════════════════════════════════');
+      console.log('🔍 ProfileScreen - DEVICES RESPONSE:');
+      console.log('devicesResponse.data:', JSON.stringify(devicesResponse.data, null, 2));
+      if (devicesResponse.data && devicesResponse.data[0]) {
+        console.log('─────────────────────────────────────────');
+        console.log('First device.disabled type:', typeof devicesResponse.data[0].disabled);
+        console.log('First device.disabled value:', devicesResponse.data[0].disabled);
+      }
+      console.log('═══════════════════════════════════════════');
+
       if (devicesResponse.data) {
         setDevices(devicesResponse.data);
       }
