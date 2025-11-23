@@ -14,16 +14,6 @@ export const TRACCAR_CONFIG = {
   TRACCAR_PORT: 8082,
 };
 
-// CompreFace настройки
-export const COMPREFACE_CONFIG = {
-  BASE_URL: 'https://unprescribed-barefootedly-jenni.ngrok-free.dev/compreface',
-  API_KEY: 'your-api-key-here', // Замените на ваш API ключ
-  RECOGNITION_ENDPOINT: '/api/v1/recognition/recognize',
-  VERIFY_ENDPOINT: '/api/v1/recognition/verify',
-  ADD_FACE_ENDPOINT: '/api/v1/recognition/faces',
-  SIMILARITY_THRESHOLD: 0.7, // 70% схожесть для успеха
-};
-
 // Коды ошибок
 export const ERROR_CODES = {
   NETWORK_ERROR: 'NETWORK_ERROR',
