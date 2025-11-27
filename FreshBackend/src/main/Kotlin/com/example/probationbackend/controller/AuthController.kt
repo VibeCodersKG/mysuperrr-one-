@@ -85,15 +85,3 @@ class AuthController(
         return ResponseEntity.ok(Unit)
     }
 }
-
-// DTO для запроса логина
-data class LoginRequest(
-    val login: String,  // Изменено с email на login для соответствия фронтенду
-    val password: String
-)
-
-data class LoginResponse(
-    val token: String? = null,
-    val user: User? = null,
-    val message: String? = null
-)
