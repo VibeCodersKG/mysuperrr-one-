@@ -108,6 +108,7 @@ data class DevicePosition(
 ) {
     /**
      * Вычисляем статус на основе времени последнего обновления
+     * Считается online если последнее обновление было не более 5 минут назад
      */
     fun isOnline(): Boolean {
         val fiveMinutesAgo = LocalDateTime.now().minusMinutes(5)
