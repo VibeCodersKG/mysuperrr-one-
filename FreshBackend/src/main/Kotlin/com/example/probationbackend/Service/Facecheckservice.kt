@@ -123,16 +123,18 @@ class FaceCheckService(
             val selfieHistogram = calculateHistogram(selfieMat, selfieFaces.get(0))
             val distance = compareHistograms(knownHistogram, selfieHistogram)
 
-            // ВАЖНО: Уменьшен порог для более строгой верификации
+            // ВАЖНО: Настроен порог для улучшенного алгоритма
             // Bhattacharyya distance: 0 = идентичны, 1 = полностью разные
-            val tolerance = 0.35  // Было 0.6 - слишком слабая верификация
+            // Используем все 3 канала HSV (H+S+V) вместо одного H
+            val tolerance = 0.45  // Сбалансированный порог для 3-канального алгоритма
             val match = distance <= tolerance
 
             println("═══════════════════════════════════════════")
-            println("🔍 FACE ID VERIFICATION (User)")
+            println("🔍 FACE ID VERIFICATION (User) - IMPROVED ALGORITHM")
             println("User ID: ${user.uniqueId}")
             println("Distance: %.4f".format(distance))
             println("Tolerance: $tolerance")
+            println("Algorithm: 3-channel HSV (Hue + Saturation + Value)")
             println("Result: ${if (match) "✅ MATCH" else "❌ NO MATCH"}")
             println("═══════════════════════════════════════════")
 
@@ -181,16 +183,18 @@ class FaceCheckService(
             val selfieHistogram = calculateHistogram(selfieMat, selfieFaces.get(0))
             val distance = compareHistograms(knownHistogram, selfieHistogram)
 
-            // ВАЖНО: Уменьшен порог для более строгой верификации
+            // ВАЖНО: Настроен порог для улучшенного алгоритма
             // Bhattacharyya distance: 0 = идентичны, 1 = полностью разные
-            val tolerance = 0.35  // Было 0.6 - слишком слабая верификация
+            // Используем все 3 канала HSV (H+S+V) вместо одного H
+            val tolerance = 0.45  // Сбалансированный порог для 3-канального алгоритма
             val match = distance <= tolerance
 
             println("═══════════════════════════════════════════")
-            println("🔍 FACE ID VERIFICATION (Client)")
+            println("🔍 FACE ID VERIFICATION (Client) - IMPROVED ALGORITHM")
             println("Client ID: ${client.id}, INN: ${client.inn}, uniqueId: ${client.uniqueId}")
             println("Distance: %.4f".format(distance))
             println("Tolerance: $tolerance")
+            println("Algorithm: 3-channel HSV (Hue + Saturation + Value)")
             println("Result: ${if (match) "✅ MATCH" else "❌ NO MATCH"}")
             println("═══════════════════════════════════════════")
 
@@ -234,18 +238,44 @@ class FaceCheckService(
 
     private fun calculateHistogram(mat: Mat, rect: Rect): Mat {
         val faceMat = Mat(mat, rect)
+
+        // Используем HSV для анализа цвета
         val hsvMat = Mat()
         cvtColor(faceMat, hsvMat, COLOR_BGR2HSV)
-        val hist = Mat()
-        val channels = IntPointer(0)
+
+        // ВАЖНО: Вычисляем гистограммы для ВСЕХ трёх каналов (H, S, V)
+        // Раньше использовался только канал H - это слишком слабо!
+        val histH = Mat()
+        val histS = Mat()
+        val histV = Mat()
+
+        val channelsH = IntPointer(0) // Hue (оттенок)
+        val channelsS = IntPointer(1) // Saturation (насыщенность)
+        val channelsV = IntPointer(2) // Value (яркость)
+
         val histSize = IntPointer(50)
-        val ranges = FloatPointer(0f, 180f)
+        val rangesH = FloatPointer(0f, 180f)
+        val rangesS = FloatPointer(0f, 256f)
+        val rangesV = FloatPointer(0f, 256f)
 
         val matVector = MatVector(1)
         matVector.put(0, hsvMat)
-        calcHist(matVector, channels, Mat(), hist, histSize, ranges)
 
-        return hist
+        // Вычисляем гистограммы для каждого канала
+        calcHist(matVector, channelsH, Mat(), histH, histSize, rangesH)
+        calcHist(matVector, channelsS, Mat(), histS, histSize, rangesS)
+        calcHist(matVector, channelsV, Mat(), histV, histSize, rangesV)
+
+        // Нормализуем гистограммы
+        normalize(histH, histH, 0.0, 1.0, NORM_MINMAX, -1, Mat())
+        normalize(histS, histS, 0.0, 1.0, NORM_MINMAX, -1, Mat())
+        normalize(histV, histV, 0.0, 1.0, NORM_MINMAX, -1, Mat())
+
+        // Объединяем все три гистограммы в одну
+        val combinedHist = Mat()
+        org.bytedeco.opencv.global.opencv_core.vconcat(MatVector(histH, histS, histV), combinedHist)
+
+        return combinedHist
     }
 
     private fun compareHistograms(hist1: Mat, hist2: Mat): Double {
