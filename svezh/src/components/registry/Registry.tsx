@@ -88,7 +88,7 @@ const Registry: React.FC = () => {
             <p>Подразделение: {client.unit}</p>
             {client.photoKey && (
               <img
-                src={`/api/faces/${client.photoKey}`}
+                src={`http://localhost:8083/api/faces/${client.photoKey}`}
                 alt={client.fio}
                 className="client-photo"
               />
