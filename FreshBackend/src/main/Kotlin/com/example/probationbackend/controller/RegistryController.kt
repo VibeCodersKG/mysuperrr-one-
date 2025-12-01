@@ -21,9 +21,22 @@ class RegistryController(
 
     @PostMapping
     fun createClient(
+        @RequestHeader("Authorization") authHeader: String?,
         @RequestPart("request") request: RegistryCreateRequest,
         @RequestPart("photo", required = false) photo: MultipartFile? // Фото как отдельная часть
     ): ResponseEntity<*> {
+        // ВАЖНО: Блокируем клиентов (осужденных) от доступа к веб-интерфейсу
+        val currentUser = getCurrentUser(authHeader)
+        if (currentUser != null && currentUser.userType == "probationer") {
+            println("✗ REGISTRY ACCESS BLOCKED: Client (probationer) ${currentUser.inn} attempted to create client")
+            return ResponseEntity.status(403).body(
+                mapOf(
+                    "message" to "Доступ запрещён. Клиенты могут использовать только мобильное приложение.",
+                    "error" to "PROBATIONER_WEB_ACCESS_DENIED"
+                )
+            )
+        }
+
         // Все авторизованные пользователи могут создавать клиентов (inspectors, mruAdmin, deptAdmin)
         return try {
             val client = registryService.createClient(request, photo)
@@ -34,7 +47,19 @@ class RegistryController(
     }
 
     @GetMapping
-    fun getAllClients(): ResponseEntity<*> {
+    fun getAllClients(@RequestHeader("Authorization") authHeader: String?): ResponseEntity<*> {
+        // ВАЖНО: Блокируем клиентов (осужденных) от доступа к веб-интерфейсу
+        val currentUser = getCurrentUser(authHeader)
+        if (currentUser != null && currentUser.userType == "probationer") {
+            println("✗ REGISTRY ACCESS BLOCKED: Client (probationer) ${currentUser.inn} attempted to access registry")
+            return ResponseEntity.status(403).body(
+                mapOf(
+                    "message" to "Доступ запрещён. Клиенты могут использовать только мобильное приложение.",
+                    "error" to "PROBATIONER_WEB_ACCESS_DENIED"
+                )
+            )
+        }
+
         val clients = registryService.findAllClients()
         return ResponseEntity.ok(clients)
     }

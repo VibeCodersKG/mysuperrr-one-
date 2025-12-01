@@ -187,6 +187,17 @@ class AdminController(
             mapOf("error" to "Unauthorized")
         )
 
+        // ВАЖНО: Блокируем клиентов (осужденных) от доступа к веб-интерфейсу
+        if (currentUser.userType == "probationer") {
+            println("✗ ADMIN ACCESS BLOCKED: Client (probationer) ${currentUser.inn} attempted to access admin panel")
+            return ResponseEntity.status(403).body(
+                mapOf(
+                    "message" to "Доступ запрещён. Клиенты могут использовать только мобильное приложение.",
+                    "error" to "PROBATIONER_WEB_ACCESS_DENIED"
+                )
+            )
+        }
+
         val clients = adminService.getClients(currentUser)
         return ResponseEntity.ok(clients)
     }
