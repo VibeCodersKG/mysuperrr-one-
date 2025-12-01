@@ -138,8 +138,8 @@ export const AdminPanel: React.FC = () => {
   const transferClient = async (clientId: number, newDistrictId: string) => {
     if (!newDistrictId) return;
     try {
-      await api.put(`/admin/clients/${clientId}/transfer`, null, {
-        params: { newDistrictId: parseInt(newDistrictId) }
+      await api.put(`/admin/clients/${clientId}/transfer`, {
+        districtId: parseInt(newDistrictId)
       });
       loadClients();
       alert('Осужденный успешно переведен!');

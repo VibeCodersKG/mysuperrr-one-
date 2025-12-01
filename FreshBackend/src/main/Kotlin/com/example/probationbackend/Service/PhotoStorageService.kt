@@ -61,14 +61,18 @@ class PhotoStorageService(
     fun loadPhotoAsResource(key: String, subDir: String? = null): org.springframework.core.io.Resource? {
         val fileName = key // Предполагаем, что ключ уже содержит расширение
         val filePath = if (subDir != null) Paths.get(storageDir, subDir, fileName) else Paths.get(storageDir, fileName)
+        println("DEBUG PhotoStorage: Loading photo from: ${filePath.toAbsolutePath()}")
         return try {
             val resource = org.springframework.core.io.UrlResource(filePath.toUri())
             if (resource.exists() && resource.isReadable) {
+                println("DEBUG PhotoStorage: Photo found and readable")
                 resource
             } else {
+                println("ERROR PhotoStorage: Photo not found or not readable at ${filePath.toAbsolutePath()}")
                 null
             }
         } catch (e: Exception) {
+            println("ERROR PhotoStorage: Exception while loading photo: ${e.message}")
             e.printStackTrace()
             null
         }
