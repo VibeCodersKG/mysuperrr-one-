@@ -37,15 +37,14 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onClose, onSuccess }) =
     erpNumber: '',
     degree: '',
     udNumber: '',
-    code: '',
-    article: '',
-    part: '',
-    point: '',
     extraInfo: '',
     measures: '',
     // Доступ
     appPassword: ''
   });
+  const [articles, setArticles] = useState<Array<{ article: string; part: string; point: string }>>([
+    { article: '', part: '', point: '' }
+  ]);
   const [photo, setPhoto] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
@@ -93,14 +92,19 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onClose, onSuccess }) =
         erpNumber: client.erpNumber || '',
         degree: client.degree || '',
         udNumber: client.udNumber || '',
-        code: client.code || '',
-        article: client.article || '',
-        part: client.part || '',
-        point: client.point || '',
         extraInfo: client.extraInfo || '',
         measures: client.measures || '',
         appPassword: '' // Не показываем старый пароль
       });
+
+      // Загружаем статьи
+      if (client.articles && client.articles.length > 0) {
+        setArticles(client.articles.map(a => ({
+          article: a.article || '',
+          part: a.part || '',
+          point: a.point || ''
+        })));
+      }
     }
   }, [client]);
 
@@ -125,7 +129,9 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onClose, onSuccess }) =
         // Удаляем пустые даты (иначе backend не сможет их распарсить)
         birthDate: formData.birthDate || null,
         obsStart: formData.obsStart || null,
-        obsEnd: formData.obsEnd || null
+        obsEnd: formData.obsEnd || null,
+        // Добавляем статьи осуждения
+        articles: articles.filter(a => a.article || a.part || a.point) // Убираем пустые статьи
       };
 
       // При редактировании не требуем пароль если он пустой
@@ -185,6 +191,22 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onClose, onSuccess }) =
 
       return updated;
     });
+  };
+
+  const handleArticleChange = (index: number, field: 'article' | 'part' | 'point', value: string) => {
+    const newArticles = [...articles];
+    newArticles[index][field] = value;
+    setArticles(newArticles);
+  };
+
+  const addArticle = () => {
+    setArticles([...articles, { article: '', part: '', point: '' }]);
+  };
+
+  const removeArticle = (index: number) => {
+    if (articles.length > 1) {
+      setArticles(articles.filter((_, i) => i !== index));
+    }
   };
 
   return (
@@ -417,55 +439,98 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onClose, onSuccess }) =
             </div>
           </div>
 
-          {/* 5. УГОЛОВНОЕ ДЕЛО */}
+          {/* 5. СТАТЬЯ ОСУЖДЕНИЯ */}
           <div className="form-section">
-            <h3>⚖️ Уголовное дело</h3>
+            <h3>⚖️ Статья осуждения</h3>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>Статья</label>
-                <input
-                  type="text"
-                  name="article"
-                  value={formData.article}
-                  onChange={handleChange}
-                  placeholder="Например: 158"
-                />
+            {articles.map((articleItem, index) => (
+              <div key={index} style={{
+                marginBottom: '20px',
+                padding: '15px',
+                backgroundColor: '#f9fafb',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '15px'
+                }}>
+                  <strong style={{ fontSize: '14px', color: '#374151' }}>
+                    Статья {index + 1}
+                  </strong>
+                  {articles.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeArticle(index)}
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        fontWeight: '500'
+                      }}
+                    >
+                      ✕ Удалить
+                    </button>
+                  )}
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Статья</label>
+                    <input
+                      type="text"
+                      value={articleItem.article}
+                      onChange={(e) => handleArticleChange(index, 'article', e.target.value)}
+                      placeholder="Например: 158"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Часть</label>
+                    <input
+                      type="text"
+                      value={articleItem.part}
+                      onChange={(e) => handleArticleChange(index, 'part', e.target.value)}
+                      placeholder="Например: 3"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Пункт</label>
+                    <input
+                      type="text"
+                      value={articleItem.point}
+                      onChange={(e) => handleArticleChange(index, 'point', e.target.value)}
+                      placeholder="Например: а, б"
+                    />
+                  </div>
+                </div>
               </div>
+            ))}
 
-              <div className="form-group">
-                <label>Часть</label>
-                <input
-                  type="text"
-                  name="part"
-                  value={formData.part}
-                  onChange={handleChange}
-                  placeholder="Например: 3"
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Пункт</label>
-                <input
-                  type="text"
-                  name="point"
-                  value={formData.point}
-                  onChange={handleChange}
-                  placeholder="Например: а, б"
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Код преступления</label>
-              <input
-                type="text"
-                name="code"
-                value={formData.code}
-                onChange={handleChange}
-                placeholder="Код по классификатору"
-              />
-            </div>
+            <button
+              type="button"
+              onClick={addArticle}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500',
+                marginTop: '10px'
+              }}
+            >
+              + Добавить статью
+            </button>
           </div>
 
           {/* 6. ПОДРАЗДЕЛЕНИЕ */}
